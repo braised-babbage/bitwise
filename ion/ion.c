@@ -723,17 +723,3 @@ void parse_test() {
     TEST_EXPR((1+2)*3);
 #undef TEST_EXPR
 }
-
-void run_tests() {
-    buf_test();
-    lex_test();
-    str_intern_test();
-    /* parse_test(); */
-    printf("all passed\n");
-}
-
-
-int main(int argc, char** argv) {
-    run_tests();
-    return 0;
-}
