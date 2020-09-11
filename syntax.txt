@@ -17,6 +17,8 @@ LTEQ = '<='
 GTEQ = '>='
 AND = '&&'
 OR = '||'
+INC = '++'
+DEC = '--'
 
 + - | ^ LSHIFT RSHIFT
 * / % & 
