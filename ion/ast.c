@@ -50,9 +50,11 @@ TypeSpec *typespec_array(TypeSpec *elem, Expr *size) {
     return t;
 }
 
-TypeSpec *typespec_func(FuncTypeSpec func) {
+TypeSpec *typespec_func(TypeSpec **args, size_t num_args, TypeSpec *ret) {
     TypeSpec *t = typespec_new(TYPESPEC_FUNC);
-    t->func = func;
+    t->func.args = args;
+    t->func.num_args = num_args;
+    t->func.ret = ret;
     return t;
 }
 

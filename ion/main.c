@@ -1,6 +1,7 @@
 #include "common.h"
 #include "lex.h"
 #include "print.h"
+#include "parse.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -31,10 +32,10 @@ void str_intern_test() {
 
 void run_tests() {
     buf_test();
-    lex_test();
-    keyword_test();
     str_intern_test();
-    print_test();
+    lex_test();
+    // print_test();
+    parse_test();
     printf("\nall passed\n");
 }
 

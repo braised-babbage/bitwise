@@ -10,6 +10,9 @@ typedef struct Stmt Stmt;
 typedef struct Decl Decl;
 typedef struct TypeSpec TypeSpec;
 
+void *ast_alloc(size_t size);
+void *ast_dup(const void *src, size_t size);
+
 typedef struct StmtBlock {
     Stmt **stmts;
     size_t num_stmts;
@@ -24,9 +27,9 @@ typedef enum TypeSpecKind {
 } TypeSpecKind;
 
 typedef struct FuncTypeSpec {
-    TypeSpec **arg_types;
+    TypeSpec **args;
     size_t num_args;
-    TypeSpec *ret_type;
+    TypeSpec *ret;
 } FuncTypeSpec;
 
 typedef struct PtrTypeSpec {
@@ -52,7 +55,7 @@ TypeSpec *typespec_new(TypeSpecKind kind);
 TypeSpec *typespec_name(const char* name);
 TypeSpec *typespec_ptr(TypeSpec *base);
 TypeSpec *typespec_array(TypeSpec *base, Expr *size);
-TypeSpec *typespec_func(FuncTypeSpec func);
+TypeSpec *typespec_func(TypeSpec **args, size_t num_args, TypeSpec *ret);
 
 void print_typespec(TypeSpec *type); 
 
@@ -128,8 +131,7 @@ struct Decl {
 
 Decl *decl_new(DeclKind kind, const char *name);
 Decl *decl_enum(const char *name, EnumItem *items, size_t num_items);
-Decl *decl_struct(const char *name, AggregateItem *items, size_t num_items);
-Decl *decl_union(const char *name, AggregateItem *items, size_t num_items);
+Decl *decl_aggregte(DeclKind kind, const char *name, AggregateItem *items, size_t num_items);
 Decl *decl_var(const char *name, TypeSpec *type, Expr *expr);
 Decl *decl_func(const char *name, FuncParam *params, size_t num_params, TypeSpec *ret_type, StmtBlock block);
 Decl *decl_const(const char *name, Expr *expr);

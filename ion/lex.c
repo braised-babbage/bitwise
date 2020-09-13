@@ -93,12 +93,13 @@ const char *token_kind_names[] = {
     [TOKEN_ADD_ASSIGN] = "+=",
     [TOKEN_SUB_ASSIGN] = "-=",
     [TOKEN_OR_ASSIGN] = "|=",
-    [TOKEN_LSHIFT_ASSIGN] = "<<=",
-    [TOKEN_RSHIFT_ASSIGN] = ">>=",
     [TOKEN_AND_ASSIGN] = "&=",
     [TOKEN_XOR_ASSIGN] = "^=",
+    [TOKEN_MUL_ASSIGN] = "*=",
     [TOKEN_DIV_ASSIGN] = "/=",
     [TOKEN_MOD_ASSIGN] = "%=",
+    [TOKEN_LSHIFT_ASSIGN] = "<<=",
+    [TOKEN_RSHIFT_ASSIGN] = ">>=",
 };
 
 const char *token_kind_name(TokenKind kind) {
@@ -164,9 +165,6 @@ void scan_int() {
             stream++;
             base = 2;
             token.mod = TOKENMOD_BIN;
-        } else if(!isspace(*stream)) {
-            syntax_error("Invalid integer literal suffix '%c'", stream);
-            stream++;
         }
     }
     uint64_t val = 0;
@@ -495,7 +493,11 @@ void keyword_test() {
 }
 
 void lex_test() {
+    keyword_test();
+
 #define assert_token_kind(x) assert(match_token(x))
+#define assert_token_keyword(x) assert(is_keyword(x) && match_token(TOKEN_KEYWORD))
+#define assert_token_name(x) assert(strcmp(token.name, x) == 0 && match_token(TOKEN_NAME))
 #define assert_token_float(x) assert(token.float_val == (x) && match_token(TOKEN_FLOAT))
 #define assert_token_int(x) assert(token.int_val == (x) && match_token(TOKEN_INT))
 #define assert_token_str(x) assert(strcmp(token.str_val, x) == 0 && match_token(TOKEN_STRING))
@@ -506,6 +508,12 @@ void lex_test() {
     assert_token_int(1);
     assert_token_eof();
     
+    init_stream("var x = 0");
+    assert_token_keyword(var_keyword);
+    assert_token_name("x");
+    assert_token_kind('=');
+    assert_token_int(0);
+    assert_token_eof();
 
     // float literal
     init_stream("3.14 .123 42. 1e-9");
@@ -571,6 +579,8 @@ void lex_test() {
     assert_token_kind(TOKEN_LSHIFT_ASSIGN);
     assert_token_eof();
 #undef assert_token_kind
+#undef assert_token_keyword
+#undef assert_token_name
 #undef assert_token_float
 #undef assert_token_int
 #undef assert_token_str

@@ -24,15 +24,14 @@ typedef struct BufHdr {
 
 #define BUF(x) x
 #define buf__hdr(b) ((BufHdr *)((char *)b - offsetof(BufHdr, buf)))
-#define buf__fits(b, n) (buf_len(b) + (n) <= buf_cap(b))
-#define buf__fit(b, n) ((buf__fits(b, n)) ? 0 : ((b) = (buf__grow(b, buf_len(b) + (n), sizeof(*(b))))))
 
 #define buf_len(b) ((b) ? (buf__hdr(b)->len) : 0U)
 #define buf_cap(b) ((b) ? (buf__hdr(b)->cap) : 0U)
 #define buf_end(b) ((b) + buf_len(b))
 #define buf_sizeof(b) ((b) ? buf_len(b)*sizeof(*b) : 0)
 
-#define buf_push(b, x) (buf__fit(b, 1), (b)[buf_len(b)] = (x), buf__hdr(b)->len++)
+#define buf_push(b, ...) (buf_fit((b), 1 + buf_len(b)), (b)[buf__hdr(b)->len++] = (__VA_ARGS__))
+#define buf_fit(b, n) ((n) <= buf_cap(b) ? 0 : ((b) = buf__grow((b), (n), sizeof(*(b)))))
 #define buf_free(b) ((b) ? (free(buf__hdr(b)), (b) = NULL) : NULL)
 
 void* buf__grow(const void *buf, size_t new_len, size_t elem_size); 

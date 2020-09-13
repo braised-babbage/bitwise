@@ -87,6 +87,7 @@ extern const char *stream;
 extern const char *token_kind_names[];
 
 const char *token_kind_name(TokenKind kind);
+const char *token_kind_str(TokenKind kind);
 
 void init_stream(const char *str);
 void next_token();

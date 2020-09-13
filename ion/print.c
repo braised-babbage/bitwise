@@ -1,5 +1,6 @@
 #include "common.h"
 #include "ast.h"
+#include "lex.h"
 #include "print.h"
 
 #include <assert.h>
@@ -18,12 +19,12 @@ void print_typespec(TypeSpec *type) {
         break;
     case TYPESPEC_FUNC:
         printf("(func (");
-        for (TypeSpec **it = type->func.arg_types; it != type->func.arg_types + type->func.num_args; it++) {
+        for (TypeSpec **it = type->func.args; it != type->func.args + type->func.num_args; it++) {
             printf(" ");
             print_typespec(*it);
         }
         printf(") ");
-        print_typespec(type->func.ret_type);
+        print_typespec(type->func.ret);
         printf(")");
         break;
     case TYPESPEC_ARRAY:
@@ -119,7 +120,11 @@ void print_decl(Decl *decl) {
             print_typespec(it->type);
         }
         printf(" ) ");
-        print_typespec(d->func.ret_type);
+        if (d->func.ret_type) {
+            print_typespec(d->func.ret_type);
+        } else {
+            printf("nil");
+        }
         indent++;
         print_newline();
         print_stmt_block(d->func.block);
@@ -187,14 +192,14 @@ void print_expr(Expr *expr) {
         break;
     case EXPR_UNARY:
         printf("(");
-        printf("%c", expr->unary.op);
+        printf("%s", token_kind_str(expr->unary.op));
         printf(" ");
         print_expr(expr->unary.expr);
         printf(")");
         break;
     case EXPR_BINARY:
         printf("(");
-        printf("%c", expr->binary.op);
+        printf("%s", token_kind_str(expr->binary.op));
         printf(" ");
         print_expr(expr->binary.left);
         printf(" ");
@@ -323,8 +328,10 @@ void print_stmt(Stmt *stmt) {
     case STMT_ASSIGN:
         printf("(%s ", token_kind_names[s->assign.op]);
         print_expr(s->assign.left);
-        printf(" ");
-        print_expr(s->assign.right);
+        if (s->assign.right) {
+            printf(" ");
+            print_expr(s->assign.right);
+        }
         printf(")");
         break;
     case STMT_INIT:
