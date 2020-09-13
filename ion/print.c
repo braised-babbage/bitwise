@@ -218,7 +218,6 @@ void print_expr(Expr *expr) {
 }
 
 void print_stmt_block(StmtBlock block, bool newlines) {
-    assert(block.num_stmts != 0);
     printf("(block");
     indent++;
     for (Stmt **it = block.stmts; it != block.stmts + block.num_stmts; it++) {
@@ -306,17 +305,12 @@ void print_stmt(Stmt *stmt) {
         indent++;
         for (SwitchCase *it = s->switch_stmt.cases; it != s->switch_stmt.cases + s->switch_stmt.num_cases; it++) {
             print_newline();
-            printf("(case (");
-            if (it->is_default) {
-                printf("default");
-            } else {
-                printf("nil");
-            }
+            printf("(case (%s", it->is_default ? " default" : "");
             for (Expr **expr = it->exprs; expr != it->exprs + it->num_exprs; expr++) {
                 printf(" ");
                 print_expr(*expr);
             }
-            printf(") ");
+            printf(" ) ");
             indent++;
             print_newline();
             print_stmt_block(it->block, true);
