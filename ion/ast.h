@@ -10,6 +10,11 @@ typedef struct Stmt Stmt;
 typedef struct Decl Decl;
 typedef struct TypeSpec TypeSpec;
 
+typedef struct StmtBlock {
+    Stmt **stmts;
+    size_t num_stmts;
+} StmtBlock;
+
 typedef enum TypeSpecKind {
     TYPESPEC_NONE,
     TYPESPEC_NAME,
@@ -71,11 +76,12 @@ typedef struct FuncDecl {
     FuncParam *params;
     size_t num_params;
     TypeSpec *ret_type;
+    StmtBlock block;
 } FuncDecl;
 
 typedef struct EnumItem {
     const char *name;
-    TypeSpec *type;
+    Expr *expr;
 } EnumItem;
 
 typedef struct EnumDecl {
@@ -119,6 +125,17 @@ struct Decl {
         ConstDecl const_decl;
     };
 };
+
+Decl *decl_alloc(DeclKind kind, const char *name);
+Decl *decl_enum(const char *name, EnumItem *items, size_t num_items);
+Decl *decl_struct(const char *name, AggregateItem *items, size_t num_items);
+Decl *decl_union(const char *name, AggregateItem *items, size_t num_items);
+Decl *decl_var(const char *name, TypeSpec *type, Expr *expr);
+Decl *decl_func(const char *name, FuncParam *params, size_t num_params, TypeSpec *ret_type, StmtBlock block);
+Decl *decl_const(const char *name, Expr *expr);
+Decl *decl_typedef(const char *name, TypeSpec *type);
+
+void print_decl(Decl* decl);
 
 typedef enum ExprKind {
     EXPR_NONE,
@@ -233,11 +250,6 @@ typedef enum StmtKind {
     STMT_EXPR,
 } StmtKind;
 
-typedef struct StmtBlock {
-    Stmt **stmts;
-    size_t num_stmts;
-} StmtBlock;
-
 typedef struct ElseIf {
     Expr *cond;
     StmtBlock block;
@@ -320,6 +332,8 @@ Stmt *stmt_assign(TokenKind op, Expr *left, Expr *right);
 Stmt *stmt_init(const char *name, Expr *expr);
 Stmt *stmt_expr(Expr *expr);
 
+
+void print_stmt_block(StmtBlock block, bool newlines);
 void print_stmt(Stmt *stmt);
 
 void ast_test();
