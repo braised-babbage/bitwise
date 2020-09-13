@@ -3,9 +3,37 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+extern const char *typedef_keyword;
+extern const char *enum_keyword;
+extern const char *struct_keyword;
+extern const char *union_keyword;
+extern const char *var_keyword;
+extern const char *const_keyword;
+extern const char *func_keyword;
+extern const char *sizeof_keyword;
+extern const char *break_keyword;
+extern const char *continue_keyword;
+extern const char *return_keyword;
+extern const char *if_keyword;
+extern const char *else_keyword;
+extern const char *while_keyword;
+extern const char *do_keyword;
+extern const char *for_keyword;
+extern const char *switch_keyword;
+extern const char *case_keyword;
+extern const char *default_keyword;
+ 
+extern const char *first_keyword;
+extern const char *last_keyword;
+extern const char **keywords;
+
+void init_keywords();
+
 typedef enum TokenKind {
     TOKEN_EOF = 0,
-    TOKEN_INT = 128,
+    TOKEN_LAST_CHAR = 127,
+    TOKEN_KEYWORD,
+    TOKEN_INT,
     TOKEN_FLOAT,
     TOKEN_NAME,
     TOKEN_STRING,
@@ -20,6 +48,7 @@ typedef enum TokenKind {
     TOKEN_AND,
     TOKEN_OR,
     TOKEN_ADD_ASSIGN,
+    TOKEN_FIRST_ASSIGN = TOKEN_ADD_ASSIGN,
     TOKEN_SUB_ASSIGN,
     TOKEN_COLON_ASSIGN,
     TOKEN_AND_ASSIGN,
@@ -30,6 +59,7 @@ typedef enum TokenKind {
     TOKEN_MUL_ASSIGN,
     TOKEN_DIV_ASSIGN,
     TOKEN_MOD_ASSIGN,
+    TOKEN_LAST_ASSIGN = TOKEN_MOD_ASSIGN,
 } TokenKind;
 
 typedef enum TokenMod {
@@ -56,11 +86,17 @@ extern Token token;
 extern const char *stream;
 extern const char *token_kind_names[];
 
+const char *token_kind_name(TokenKind kind);
+
 void init_stream(const char *str);
 void next_token();
 bool is_token(TokenKind kind);
+bool is_token_eof();
 bool is_token_name(const char *name);
+bool is_keyword(const char *name);
+bool match_keyword(const char *name);
 bool match_token(TokenKind kind);
 bool expect_token(TokenKind kind);
 
 void lex_test();
+void keyword_test();

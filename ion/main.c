@@ -32,6 +32,7 @@ void str_intern_test() {
 void run_tests() {
     buf_test();
     lex_test();
+    keyword_test();
     str_intern_test();
     print_test();
     printf("\nall passed\n");

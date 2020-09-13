@@ -53,11 +53,14 @@ void arena_grow(Arena *arena, size_t min_size);
 void *arena_alloc(Arena *arena, size_t size);
 void arena_free(Arena *arena);
 
-
 typedef struct Intern {
     size_t len;
     const char *str;
 } Intern;
+
+
+extern Arena str_arena;
+extern Intern *interns;
 
 const char *str_intern_range(const char *start, const char *end);
 const char *str_intern(const char *str); 
