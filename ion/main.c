@@ -1,5 +1,6 @@
 #include "common.h"
 #include "lex.h"
+#include "ast.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -114,7 +115,8 @@ void run_tests() {
     buf_test();
     lex_test();
     str_intern_test();
-    printf("all passed\n");
+    ast_test();
+    printf("\nall passed\n");
 }
 
 
