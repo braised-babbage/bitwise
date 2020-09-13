@@ -92,6 +92,18 @@ Expr *parse_expr_operand() {
         } else {
             return expr_name(name);
         }
+    } else if (match_keyword(sizeof_keyword)) {
+        expect_token('(');
+        if (is_token(':')) {
+            match_token(':');
+            TypeSpec *type = parse_type();
+            expect_token(')');
+            return expr_sizeof_type(type);
+        } else {
+            Expr *expr = parse_expr();
+            expect_token(')');
+            return expr_sizeof_expr(expr);
+        }
     } else if (is_token('{')) {
         return parse_expr_compound(NULL);
     } else if (match_token('(')) {
@@ -510,6 +522,7 @@ void parse_and_print_decl(const char *str) {
 }
 
 void parse_test() {
+    parse_and_print_decl("const n = sizeof(:int*[16])");
     parse_and_print_decl("const pi = 3.14");
     parse_and_print_decl("var x = 0");
     parse_and_print_decl("func fact(n: int): int { trace(\"fact\"); if (n == 0) { return 1; } else { return n * fact(n-1); } }");
@@ -518,4 +531,5 @@ void parse_test() {
     parse_and_print_decl("struct Vector { x, y: float; }");
     parse_and_print_decl("union IntOrFloat { i: int; f: float; }");
     parse_and_print_decl("typedef Vectors = Vector[1+2]");
+    parse_and_print_decl("const n = sizeof(42)");
 }

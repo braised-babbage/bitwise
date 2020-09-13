@@ -151,7 +151,22 @@ typedef enum ExprKind {
     EXPR_UNARY,
     EXPR_BINARY,
     EXPR_TERNARY,
+    EXPR_SIZEOF,
 } ExprKind;
+
+typedef enum SizeofKind {
+    SIZEOF_EXPR,
+    SIZEOF_TYPE,
+} SizeofKind;
+
+typedef struct SizeofExpr {
+    SizeofKind kind;
+    union {
+        Expr *expr;
+        TypeSpec *type;
+
+    };
+} SizeofExpr;
 
 typedef struct CompoundExpr {
     TypeSpec *type;
@@ -207,6 +222,7 @@ struct Expr {
         const char *name;
         
         // the rest
+        SizeofExpr sizeof_expr;
         CompoundExpr compound;
         CastExpr cast;
         UnaryExpr unary;
@@ -232,6 +248,8 @@ Expr *expr_cast(TypeSpec *cast_type, Expr *cast);
 Expr *expr_unary(TokenKind op, Expr *expr);
 Expr *expr_binary(TokenKind op, Expr *left, Expr *right);
 Expr *expr_ternary(Expr *cond, Expr *then_expr, Expr *else_expr);
+Expr *expr_sizeof_expr(Expr *expr);
+Expr *expr_sizeof_type(TypeSpec *type);
 
 typedef enum StmtKind {
     STMT_NONE,

@@ -207,8 +207,19 @@ Expr *expr_ternary(Expr *cond, Expr *then_expr, Expr *else_expr) {
     return e;
 }
 
+Expr *expr_sizeof_expr(Expr *expr) {
+    Expr *e = expr_new(EXPR_SIZEOF);
+    e->sizeof_expr.kind = SIZEOF_EXPR;
+    e->sizeof_expr.expr = expr;
+    return e;
+}
 
-
+Expr *expr_sizeof_type(TypeSpec *type) {
+    Expr *e = expr_new(EXPR_SIZEOF);
+    e->sizeof_expr.kind = SIZEOF_TYPE;
+    e->sizeof_expr.type = type;
+    return e;
+}
 
 
 Stmt *stmt_new(StmtKind kind) {

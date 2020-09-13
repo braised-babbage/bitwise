@@ -154,6 +154,16 @@ void print_expr(Expr *expr) {
     case EXPR_NAME:
         printf("%s", expr->name);
         break;
+    case EXPR_SIZEOF:
+        printf("(sizeof ");
+        if (expr->sizeof_expr.kind == SIZEOF_EXPR) {
+            print_expr(expr->sizeof_expr.expr);
+        } else {
+            assert(expr->sizeof_expr.kind == SIZEOF_TYPE);
+            print_typespec(expr->sizeof_expr.type);
+        }
+        printf(")");
+        break;
     case EXPR_CALL:
         printf("(");
         print_expr(expr->call.expr);
