@@ -4,7 +4,7 @@ project(bitwise C)
 include(CTest)
 enable_testing()
 
-add_executable(bitwise ion/main.c ion/common.c ion/lex.c ion/ast.c)
+add_executable(bitwise ion/main.c ion/common.c ion/lex.c ion/ast.c ion/print.c)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

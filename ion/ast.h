@@ -135,8 +135,6 @@ Decl *decl_func(const char *name, FuncParam *params, size_t num_params, TypeSpec
 Decl *decl_const(const char *name, Expr *expr);
 Decl *decl_typedef(const char *name, TypeSpec *type);
 
-void print_decl(Decl* decl);
-
 typedef enum ExprKind {
     EXPR_NONE,
     EXPR_INT,
@@ -224,15 +222,14 @@ Expr *expr_float(double float_val);
 Expr *expr_str(const char *str);
 Expr *expr_name(const char *name);
 Expr *expr_call(Expr *expr, Expr **args, size_t num_args);
+Expr *expr_compound(TypeSpec *type, Expr **args, size_t num_args);
+
 Expr *expr_index(Expr *expr, Expr *index);
 Expr *expr_field(Expr *expr, const char *name);
 Expr *expr_cast(TypeSpec *cast_type, Expr *cast);
 Expr *expr_unary(TokenKind op, Expr *expr);
 Expr *expr_binary(TokenKind op, Expr *left, Expr *right);
 Expr *expr_ternary(Expr *cond, Expr *if_true, Expr *if_false);
-
-void print_expr(Expr *expr);
-void print_expr_line(Expr *expr);
 
 typedef enum StmtKind {
     STMT_NONE,
@@ -331,9 +328,3 @@ Stmt *stmt_switch(Expr *expr, SwitchCase *cases, size_t num_cases);
 Stmt *stmt_assign(TokenKind op, Expr *left, Expr *right);
 Stmt *stmt_init(const char *name, Expr *expr);
 Stmt *stmt_expr(Expr *expr);
-
-
-void print_stmt_block(StmtBlock block, bool newlines);
-void print_stmt(Stmt *stmt);
-
-void ast_test();

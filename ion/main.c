@@ -1,6 +1,6 @@
 #include "common.h"
 #include "lex.h"
-#include "ast.h"
+#include "print.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -33,7 +33,7 @@ void run_tests() {
     buf_test();
     lex_test();
     str_intern_test();
-    ast_test();
+    print_test();
     printf("\nall passed\n");
 }
 
