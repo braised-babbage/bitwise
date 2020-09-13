@@ -54,15 +54,13 @@ typedef struct Token {
 
 extern Token token;
 extern const char *stream;
+extern const char *token_kind_names[];
 
 void init_stream(const char *str);
-
 void next_token();
-
 bool is_token(TokenKind kind);
-
 bool is_token_name(const char *name);
-
 bool match_token(TokenKind kind);
-
 bool expect_token(TokenKind kind);
+
+void lex_test();

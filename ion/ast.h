@@ -226,10 +226,10 @@ typedef enum StmtKind {
     STMT_IF,
     STMT_WHILE,
     STMT_FOR,
-    STMT_DO,
+    STMT_DO_WHILE,
     STMT_SWITCH,
     STMT_ASSIGN,
-    STMT_AUTO_ASSIGN,
+    STMT_INIT,
     STMT_EXPR,
 } StmtKind;
 
@@ -260,12 +260,14 @@ typedef struct ForStmt {
     StmtBlock init;
     Expr *cond;
     StmtBlock next;
+    StmtBlock block;
 } ForStmt;
 
 typedef struct SwitchCase {
     Expr **exprs;
     size_t num_exprs;
-    StmtBlock *block;
+    StmtBlock block;
+    bool is_default;
 } SwitchCase;
 
 typedef struct SwitchStmt {
@@ -280,21 +282,44 @@ typedef struct AssignStmt {
     Expr *right;
 } AssignStmt;
 
-typedef struct AutoAssignStmt {
+typedef struct InitStmt {
     const char *name;
-    Expr *init;
-} AutoAssignStmt;
+    Expr *expr;
+} InitStmt;
+
+typedef struct ReturnStmt {
+    Expr *expr;
+} ReturnStmt;
 
 struct Stmt {
     StmtKind kind;
     union {
+        ReturnStmt return_stmt;
+        StmtBlock block;
         IfStmt if_stmt;
         WhileStmt while_stmt;
         ForStmt for_stmt;
         SwitchStmt switch_stmt;
         AssignStmt assign;
-        AutoAssignStmt autoassign;
+        InitStmt init;
+        Expr *expr;
     };
 };
+
+Stmt *stmt_alloc(StmtKind kind);
+Stmt *stmt_return(Expr *expr);
+Stmt *stmt_break();
+Stmt *stmt_continue();
+Stmt *stmt_block(StmtBlock block);
+Stmt *stmt_if(Expr *cond, StmtBlock then_block, ElseIf *elseifs, size_t num_elseifs, StmtBlock else_block);
+Stmt *stmt_while(Expr *cond, StmtBlock block);
+Stmt *stmt_do_while(Expr *cond, StmtBlock block);
+Stmt *stmt_for(StmtBlock init, Expr *cond, StmtBlock next, StmtBlock block);
+Stmt *stmt_switch(Expr *expr, SwitchCase *cases, size_t num_cases);
+Stmt *stmt_assign(TokenKind op, Expr *left, Expr *right);
+Stmt *stmt_init(const char *name, Expr *expr);
+Stmt *stmt_expr(Expr *expr);
+
+void print_stmt(Stmt *stmt);
 
 void ast_test();

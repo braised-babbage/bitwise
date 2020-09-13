@@ -4,28 +4,47 @@
 #include <stdbool.h>
 #include <math.h>
 #include <assert.h>
+#include <string.h>
 
 #include "common.h"
 #include "lex.h"
 
+const char *token_kind_names[] = {
+    [TOKEN_EOF] = "EOF",
+    [TOKEN_INT] = "int",
+    [TOKEN_FLOAT] = "float",
+    [TOKEN_STRING] = "string",
+    [TOKEN_NAME] = "name",
+    [TOKEN_LSHIFT] = "<<",
+    [TOKEN_RSHIFT] = ">>",
+    [TOKEN_EQ] = "==",
+    [TOKEN_NOTEQ] = "!=",
+    [TOKEN_LTEQ] = "<=",
+    [TOKEN_GTEQ] = ">=",
+    [TOKEN_AND] = "&&",
+    [TOKEN_OR] = "||",
+    [TOKEN_INC] = "++",
+    [TOKEN_DEC] = "--",
+    [TOKEN_COLON_ASSIGN] = ":=",
+    [TOKEN_ADD_ASSIGN] = "+=",
+    [TOKEN_SUB_ASSIGN] = "-=",
+    [TOKEN_OR_ASSIGN] = "|=",
+    [TOKEN_LSHIFT_ASSIGN] = "<<=",
+    [TOKEN_RSHIFT_ASSIGN] = ">>=",
+    [TOKEN_AND_ASSIGN] = "&=",
+    [TOKEN_XOR_ASSIGN] = "^=",
+    [TOKEN_DIV_ASSIGN] = "/=",
+    [TOKEN_MOD_ASSIGN] = "%=",
+};
+
 size_t copy_token_kind_str(char *dest, size_t dest_size, TokenKind kind) {
     size_t n = 0;
-    switch (kind) {
-    case TOKEN_EOF:
-        n = snprintf(dest, dest_size, "end of file");
-        break;
-    case TOKEN_INT:
-        n = snprintf(dest, dest_size, "integer");
-        break;
-    case TOKEN_NAME:
-        n = snprintf(dest, dest_size, "name");
-        break;
-    default:
-        if (kind < 128 && isprint(kind)) {
-            n = snprintf(dest, dest_size, "%c", kind);
-        } else {
-            n = snprintf(dest, dest_size, "<ASCII %d>", kind);
-        }
+    if (kind < sizeof(token_kind_names)/sizeof(*token_kind_names) && token_kind_names[kind]) {
+        n = snprintf(dest, dest_size, "%s", token_kind_names[kind]);
+    } else if (kind < 128 && isprint(kind)) {
+        n = snprintf(dest, dest_size, "%c", kind);
+    } else {
+        n = snprintf(dest, dest_size, "<ASCII %d>", kind);
     }
     return n;
 }
@@ -383,4 +402,87 @@ bool expect_token(TokenKind kind) {
     } else {
         return true;
     }
+}
+
+void lex_test() {
+#define assert_token_kind(x) assert(match_token(x))
+#define assert_token_float(x) assert(token.float_val == (x) && match_token(TOKEN_FLOAT))
+#define assert_token_int(x) assert(token.int_val == (x) && match_token(TOKEN_INT))
+#define assert_token_str(x) assert(strcmp(token.str_val, x) == 0 && match_token(TOKEN_STRING))
+#define assert_token_eof() assert(token.kind == TOKEN_EOF)
+
+    init_stream("0 1");
+    assert_token_int(0);
+    assert_token_int(1);
+    assert_token_eof();
+    
+
+    // float literal
+    init_stream("3.14 .123 42. 1e-9");
+    assert_token_float(3.14);
+    assert_token_float(.123);
+    assert_token_float(42.);
+    assert_token_float(1.e-9);
+    assert_token_eof();
+
+    // char literal tests
+    init_stream("'a' '\\n'");
+    assert_token_int('a');
+    assert_token_int('\n');
+    assert_token_eof();
+
+    // string literal tests
+    init_stream("\"foo bar\"");
+    assert_token_str("foo bar");
+    assert_token_eof();
+
+    char *src = "+()1234+4589-_foo123";
+    init_stream(src);
+    expect_token('+');
+    expect_token('(');
+    expect_token(')');
+    assert(token.int_val == 1234);
+    expect_token(TOKEN_INT);
+    expect_token('+');
+    assert(token.int_val == 4589);
+    expect_token(TOKEN_INT);
+    expect_token('-');
+    assert(token.name == str_intern("_foo123"));
+    expect_token(TOKEN_NAME);
+    expect_token(TOKEN_EOF);
+
+    init_stream("18446744073709551615");
+    assert(token.mod == TOKENMOD_NONE);
+    assert_token_int(UINT64_MAX);
+    assert_token_eof();
+
+    init_stream("0xFf");
+    assert(token.mod == TOKENMOD_HEX);
+    assert_token_int(255);
+    assert_token_eof();
+
+    init_stream("0b11");
+    assert(token.mod == TOKENMOD_BIN);
+    assert_token_int(3);
+    assert_token_eof();
+
+    // ops and assignments
+    init_stream("+ ++ += - -- -= : := < << <<=");
+    assert_token_kind('+');
+    assert_token_kind(TOKEN_INC);
+    assert_token_kind(TOKEN_ADD_ASSIGN);
+    assert_token_kind('-');
+    assert_token_kind(TOKEN_DEC);
+    assert_token_kind(TOKEN_SUB_ASSIGN);
+    assert_token_kind(':');
+    assert_token_kind(TOKEN_COLON_ASSIGN);
+    assert_token_kind('<');
+    assert_token_kind(TOKEN_LSHIFT);
+    assert_token_kind(TOKEN_LSHIFT_ASSIGN);
+    assert_token_eof();
+#undef assert_token_kind
+#undef assert_token_float
+#undef assert_token_int
+#undef assert_token_str
+#undef assert_token_eof
 }
