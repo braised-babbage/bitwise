@@ -30,29 +30,57 @@ extern const char **keywords;
 void init_keywords();
 
 typedef enum TokenKind {
-    TOKEN_EOF = 0,
-    TOKEN_LAST_CHAR = 127,
+    TOKEN_EOF,
+    TOKEN_COLON,
+    TOKEN_LPAREN,
+    TOKEN_RPAREN,
+    TOKEN_LBRACE,
+    TOKEN_RBRACE,
+    TOKEN_LBRACKET,
+    TOKEN_RBRACKET,
+    TOKEN_COMMA,
+    TOKEN_DOT,
+    TOKEN_QUESTION,
+    TOKEN_SEMICOLON,
     TOKEN_KEYWORD,
     TOKEN_INT,
     TOKEN_FLOAT,
+    TOKEN_STR,
     TOKEN_NAME,
-    TOKEN_STRING,
-    TOKEN_INC,
-    TOKEN_DEC,
+    // Multiplicative precedence
+    TOKEN_MUL,
+    TOKEN_FIRST_MUL = TOKEN_MUL,
+    TOKEN_DIV,
+    TOKEN_MOD,
+    TOKEN_BAND,
     TOKEN_LSHIFT,
     TOKEN_RSHIFT,
+    TOKEN_LAST_MUL = TOKEN_RSHIFT,
+    // Additive precedence
+    TOKEN_ADD,
+    TOKEN_FIRST_ADD = TOKEN_ADD,
+    TOKEN_SUB,
+    TOKEN_XOR,
+    TOKEN_BOR,
+    TOKEN_LAST_ADD = TOKEN_BOR,
+    // Comparative precedence
     TOKEN_EQ,
+    TOKEN_FIRST_CMP = TOKEN_EQ,
     TOKEN_NOTEQ,
+    TOKEN_LT,
+    TOKEN_GT,
     TOKEN_LTEQ,
     TOKEN_GTEQ,
+    TOKEN_LAST_CMP = TOKEN_GTEQ,
     TOKEN_AND,
     TOKEN_OR,
+    // Assignment operators
+    TOKEN_ASSIGN,
+    TOKEN_FIRST_ASSIGN = TOKEN_ASSIGN,
     TOKEN_ADD_ASSIGN,
-    TOKEN_FIRST_ASSIGN = TOKEN_ADD_ASSIGN,
     TOKEN_SUB_ASSIGN,
-    TOKEN_COLON_ASSIGN,
-    TOKEN_AND_ASSIGN,
     TOKEN_OR_ASSIGN,
+    TOKEN_AND_ASSIGN,
     TOKEN_XOR_ASSIGN,
     TOKEN_LSHIFT_ASSIGN,
     TOKEN_RSHIFT_ASSIGN,
@@ -60,7 +88,11 @@ typedef enum TokenKind {
     TOKEN_DIV_ASSIGN,
     TOKEN_MOD_ASSIGN,
     TOKEN_LAST_ASSIGN = TOKEN_MOD_ASSIGN,
+    TOKEN_INC,
+    TOKEN_DEC,
+    TOKEN_COLON_ASSIGN,
 } TokenKind;
+
 
 typedef enum TokenMod {
     TOKENMOD_NONE,
@@ -87,7 +119,7 @@ extern const char *stream;
 extern const char *token_kind_names[];
 
 const char *token_kind_name(TokenKind kind);
-const char *token_kind_str(TokenKind kind);
+const char *token_info();
 
 void init_stream(const char *str);
 void next_token();

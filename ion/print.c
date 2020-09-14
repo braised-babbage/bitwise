@@ -202,14 +202,14 @@ void print_expr(Expr *expr) {
         break;
     case EXPR_UNARY:
         printf("(");
-        printf("%s", token_kind_str(expr->unary.op));
+        printf("%s", token_kind_name(expr->unary.op));
         printf(" ");
         print_expr(expr->unary.expr);
         printf(")");
         break;
     case EXPR_BINARY:
         printf("(");
-        printf("%s", token_kind_str(expr->binary.op));
+        printf("%s", token_kind_name(expr->binary.op));
         printf(" ");
         print_expr(expr->binary.left);
         printf(" ");
