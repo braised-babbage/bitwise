@@ -18,6 +18,11 @@ void buf_test() {
     }
     buf_free(asd);
     assert(asd == NULL);
+    char *str = NULL;
+    buf_printf(str, "One: %d\n", 1);
+    assert(strcmp(str, "One: 1\n") == 0);
+    buf_printf(str, "Hex: 0x%x\n", 0x12345678);
+    assert(strcmp(str, "One: 1\nHex: 0x12345678\n") == 0);
 }
 
 void str_intern_test() {
@@ -34,8 +39,8 @@ void run_tests() {
     buf_test();
     str_intern_test();
     lex_test();
-    // print_test();
-    parse_test();
+    print_test();
+    // parse_test();
     printf("\nall passed\n");
 }
 

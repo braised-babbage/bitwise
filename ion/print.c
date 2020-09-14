@@ -8,6 +8,20 @@
 
 int indent;
 
+char *print_buf;
+bool use_print_buf;
+
+#define printf(...) (use_print_buf ? (void)buf_printf(print_buf, __VA_ARGS__) : (void)printf(__VA_ARGS__))
+
+void flush_print_buf(FILE *file) {
+    if (print_buf) {
+        if (file) {
+            fputs(print_buf, file);
+        }
+        buf_clear(print_buf);
+    }
+}
+
 void print_newline() {
     printf("\n%.*s", 2*indent, "                                                                      ");
 }
@@ -370,8 +384,8 @@ void expr_test() {
     Expr **fact_args = NULL;
     buf_push(fact_args, expr_int(42));
 
-    print_expr_line(expr_binary('+', expr_int(1), expr_int(42)));
-    print_expr_line(expr_unary('-', expr_float(3.14)));
+    print_expr_line(expr_binary(TOKEN_ADD, expr_int(1), expr_int(42)));
+    print_expr_line(expr_unary(TOKEN_SUB, expr_float(3.14)));
     print_expr_line(
         expr_ternary(expr_name("flag"), expr_str("true"), expr_str("false"))
     );
@@ -452,6 +466,9 @@ void stmt_test() {
 }
 
 void print_test() {
+    use_print_buf = true;
     expr_test();
     stmt_test();
+    flush_print_buf(stdout);
+    use_print_buf = false;
 }

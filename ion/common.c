@@ -83,6 +83,23 @@ void* buf__grow(const void *buf, size_t new_len, size_t elem_size) {
     return new_hdr->buf;
 }
 
+char *buf__printf(char *buf, const char *fmt, ...) {
+    va_list args;
+    va_start(args, fmt);
+    size_t n = vsnprintf(NULL, 0, fmt, args);
+    va_end(args);
+    if (buf_len(buf) == 0) {
+        n++;
+    }
+    buf_fit(buf, n + buf_len(buf));
+    char *dest = buf_len(buf) == 0 ? buf : buf + buf_len(buf) - 1;
+    va_start(args, fmt);
+    vsnprintf(dest, buf + buf_cap(buf) - dest, fmt, args);
+    va_end(args);
+    buf__hdr(buf)->len += n;
+    return buf;
+}
+
 void arena_grow(Arena *arena, size_t min_size) {
     size_t size = ALIGN_UP(MAX(ARENA_BLOCK_SIZE, min_size), ARENA_ALIGNMENT);
     arena->ptr = xmalloc(size);
