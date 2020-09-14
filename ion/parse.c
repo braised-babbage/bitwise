@@ -152,7 +152,7 @@ Expr *parse_expr_base() {
 }
 
 bool is_unary_op() {
-    return is_token(TOKEN_ADD) || is_token(TOKEN_SUB) || is_token(TOKEN_MUL) || is_token(TOKEN_BAND);
+    return is_token(TOKEN_ADD) || is_token(TOKEN_SUB) || is_token(TOKEN_MUL) || is_token(TOKEN_AND);
 }
 
 Expr *parse_expr_unary() {
@@ -166,7 +166,7 @@ Expr *parse_expr_unary() {
 }
 
 bool is_mul_op() {
-    return is_token(TOKEN_MUL) || is_token(TOKEN_DIV) || is_token(TOKEN_MOD) || is_token(TOKEN_BAND) || is_token(TOKEN_LSHIFT) || is_token(TOKEN_RSHIFT);
+    return TOKEN_FIRST_MUL <= token.kind && token.kind <= TOKEN_LAST_MUL;
 }
 
 Expr *parse_expr_mul() {
@@ -180,7 +180,7 @@ Expr *parse_expr_mul() {
 }
 
 bool is_add_op() {
-    return is_token(TOKEN_ADD) || is_token(TOKEN_SUB) || is_token(TOKEN_BOR) || is_token(TOKEN_XOR);
+    return TOKEN_FIRST_ADD <= token.kind && token.kind <= TOKEN_LAST_ADD;
 }
 
 Expr *parse_expr_add() {
@@ -194,7 +194,7 @@ Expr *parse_expr_add() {
 }
 
 bool is_cmp_op() {
-    return is_token(TOKEN_LT) || is_token(TOKEN_GT) || is_token(TOKEN_EQ) || is_token(TOKEN_NOTEQ) || is_token(TOKEN_GTEQ) || is_token(TOKEN_LTEQ);
+    return TOKEN_FIRST_CMP <= token.kind && token.kind <= TOKEN_LAST_CMP;
 }
 
 Expr *parse_expr_cmp() {
@@ -209,16 +209,16 @@ Expr *parse_expr_cmp() {
 
 Expr *parse_expr_and() {
     Expr *expr = parse_expr_cmp();
-    while (match_token(TOKEN_AND)) {
-        expr = expr_binary(TOKEN_AND, expr, parse_expr_cmp());
+    while (match_token(TOKEN_AND_AND)) {
+        expr = expr_binary(TOKEN_AND_AND, expr, parse_expr_cmp());
     }
     return expr;
 }
 
 Expr *parse_expr_or() {
     Expr *expr = parse_expr_and();
-    while (match_token(TOKEN_OR)) {
-        expr = expr_binary(TOKEN_OR, expr, parse_expr_and());
+    while (match_token(TOKEN_OR_OR)) {
+        expr = expr_binary(TOKEN_OR_OR, expr, parse_expr_and());
     }
     return expr;
 }
