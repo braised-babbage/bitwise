@@ -151,22 +151,9 @@ typedef enum ExprKind {
     EXPR_UNARY,
     EXPR_BINARY,
     EXPR_TERNARY,
-    EXPR_SIZEOF,
+    EXPR_SIZEOF_EXPR,
+    EXPR_SIZEOF_TYPE,
 } ExprKind;
-
-typedef enum SizeofKind {
-    SIZEOF_EXPR,
-    SIZEOF_TYPE,
-} SizeofKind;
-
-typedef struct SizeofExpr {
-    SizeofKind kind;
-    union {
-        Expr *expr;
-        TypeSpec *type;
-
-    };
-} SizeofExpr;
 
 typedef struct CompoundExpr {
     TypeSpec *type;
@@ -222,7 +209,8 @@ struct Expr {
         const char *name;
         
         // the rest
-        SizeofExpr sizeof_expr;
+        Expr *sizeof_expr;
+        TypeSpec *sizeof_type;
         CompoundExpr compound;
         CastExpr cast;
         UnaryExpr unary;

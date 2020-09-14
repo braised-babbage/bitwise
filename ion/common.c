@@ -97,6 +97,7 @@ void *arena_alloc(Arena *arena, size_t size) {
     }
     void *ptr = arena->ptr;
     arena->ptr = ALIGN_UP_PTR(arena->ptr + size, ARENA_ALIGNMENT);
+    assert(arena->ptr == ALIGN_DOWN_PTR(arena->ptr, ARENA_ALIGNMENT));
     assert(arena->ptr <= arena->end);
     assert(ptr == ALIGN_DOWN_PTR(ptr, ARENA_ALIGNMENT));
     return ptr;
@@ -106,6 +107,7 @@ void arena_free(Arena *arena) {
     for (char **it = arena->blocks; it != buf_end(arena->blocks); it++) {
         free(*it);
     }
+    buf_free(arena->blocks);
 }
 
 Arena str_arena;

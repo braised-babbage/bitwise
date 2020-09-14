@@ -28,7 +28,7 @@ void print_typespec(TypeSpec *type) {
         printf(")");
         break;
     case TYPESPEC_ARRAY:
-        printf("(arr ");
+        printf("(array ");
         print_typespec(type->array.elem);
         printf(" ");
         print_expr(type->array.size);
@@ -154,14 +154,14 @@ void print_expr(Expr *expr) {
     case EXPR_NAME:
         printf("%s", expr->name);
         break;
-    case EXPR_SIZEOF:
+    case EXPR_SIZEOF_EXPR:
         printf("(sizeof ");
-        if (expr->sizeof_expr.kind == SIZEOF_EXPR) {
-            print_expr(expr->sizeof_expr.expr);
-        } else {
-            assert(expr->sizeof_expr.kind == SIZEOF_TYPE);
-            print_typespec(expr->sizeof_expr.type);
-        }
+        print_expr(expr->sizeof_expr);
+        printf(")");
+        break;
+    case EXPR_SIZEOF_TYPE:
+        printf("(sizeof ");
+        print_typespec(expr->sizeof_type);
         printf(")");
         break;
     case EXPR_CALL:
