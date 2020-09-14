@@ -7,6 +7,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+Decl *parse_decl_optional();
+
 TypeSpec *parse_type_func() {
     TypeSpec **args = NULL;
     expect_token(TOKEN_LPAREN);
@@ -386,9 +388,14 @@ Stmt *parse_stmt() {
     } else if (match_keyword(switch_keyword)) {
         return parse_stmt_switch();
     } else {
-        Stmt *stmt = parse_simple_stmt();
-        expect_token(TOKEN_SEMICOLON);
-        return stmt;
+        Decl *decl = parse_decl_optional();
+        if (decl) {
+            return stmt_decl(decl);
+        } else {
+            Stmt *stmt = parse_simple_stmt();
+            expect_token(TOKEN_SEMICOLON);
+            return stmt;
+        }
     }
 }
 
@@ -398,17 +405,24 @@ const char *parse_name() {
     return name;
 }
 
+EnumItem parse_decl_enum_item() {
+    const char *name = parse_name();
+    Expr *init = NULL;
+    if (match_token(TOKEN_ASSIGN)) {
+        init = parse_expr();
+    }
+    return (EnumItem){name, init};
+}
+
 Decl *parse_decl_enum() {
     const char *name = parse_name();
     expect_token(TOKEN_LBRACE);
     EnumItem *items = NULL;
-    while (!is_token_eof() && !is_token(TOKEN_RBRACE)) {
-        const char *item_name = parse_name();
-        Expr *expr = NULL;
-        if (match_token(TOKEN_ASSIGN)) {
-            expr = parse_expr();
+   if (!is_token(TOKEN_RBRACE)) {
+        buf_push(items, parse_decl_enum_item());
+        while (match_token(TOKEN_COMMA)) {
+            buf_push(items, parse_decl_enum_item());
         }
-        buf_push(items, (EnumItem){name, expr});
     }
     expect_token(TOKEN_RBRACE);
     return decl_enum(name, ast_dup(items, buf_sizeof(items)), buf_len(items));
@@ -493,7 +507,7 @@ Decl *parse_decl_func() {
     return decl_func(name, ast_dup(params, buf_sizeof(params)), buf_len(params), ret_type, block);
 }
 
-Decl *parse_decl() {
+Decl *parse_decl_optional() {
     if (match_keyword(enum_keyword)) {
         return parse_decl_enum();
     } else if (match_keyword(struct_keyword)) {
@@ -509,9 +523,16 @@ Decl *parse_decl() {
     } else if (match_keyword(func_keyword)) {
         return parse_decl_func();
     } else {
-        fatal_syntax_error("Expected declaration keyword, got %s", token_info());
         return NULL;
     }
+}
+
+Decl *parse_decl() {
+    Decl *decl = parse_decl_optional();
+    if (!decl) {
+        fatal_syntax_error("Expected declaration keyword, got %s", token_info());
+    }
+    return decl;
 }
 
 void parse_and_print_decl(const char *str) {
@@ -534,4 +555,6 @@ void parse_test() {
     parse_and_print_decl("const n = sizeof(42)");
     parse_and_print_decl("func f() { do { print(42); } while(1); }");
     parse_and_print_decl("typedef T = (func(int):int)[16]");
+    parse_and_print_decl("func f() { enum E { A, B, C } return 42; }");
+    parse_and_print_decl("func f() { if (1) { return 1; } else if (2) { return 2; } else { return 3; } }");
 }

@@ -241,6 +241,7 @@ Expr *expr_sizeof_type(TypeSpec *type);
 
 typedef enum StmtKind {
     STMT_NONE,
+    STMT_DECL,
     STMT_RETURN,
     STMT_BREAK,
     STMT_CONTINUE,
@@ -311,6 +312,7 @@ typedef struct ReturnStmt {
 struct Stmt {
     StmtKind kind;
     union {
+        Decl *decl;
         ReturnStmt return_stmt;
         StmtBlock block;
         IfStmt if_stmt;
@@ -324,6 +326,7 @@ struct Stmt {
 };
 
 Stmt *stmt_new(StmtKind kind);
+Stmt *stmt_decl(Decl *decl);
 Stmt *stmt_return(Expr *expr);
 Stmt *stmt_break();
 Stmt *stmt_continue();

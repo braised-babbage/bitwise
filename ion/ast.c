@@ -58,7 +58,6 @@ TypeSpec *typespec_func(TypeSpec **args, size_t num_args, TypeSpec *ret) {
     return t;
 }
 
-
 Decl *decl_new(DeclKind kind, const char *name) {
     Decl *d = ast_alloc(sizeof(Decl));
     d->kind = kind;
@@ -223,6 +222,12 @@ Expr *expr_sizeof_type(TypeSpec *type) {
 Stmt *stmt_new(StmtKind kind) {
     Stmt *s = ast_alloc(sizeof(Stmt));
     s->kind = kind;
+    return s;
+}
+
+Stmt *stmt_decl(Decl *decl) {
+    Stmt *s = stmt_new(STMT_DECL);
+    s->decl = decl;
     return s;
 }
 
