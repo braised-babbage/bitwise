@@ -223,7 +223,7 @@ struct Expr {
 };
 
 Expr *expr_new(ExprKind kind);
-Expr *expr_int(uint64_t int_val);
+Expr *expr_int(int64_t int_val);
 Expr *expr_float(double float_val);
 Expr *expr_str(const char *str);
 Expr *expr_name(const char *name);

@@ -9,6 +9,8 @@
 
 Arena ast_arena;
 
+#define AST_DUP(x) ast_dup(x, num_##x * sizeof(*x))
+
 void *ast_alloc(size_t size) {
     assert(size != 0);
     void *ptr = arena_alloc(&ast_arena, size);
@@ -23,6 +25,10 @@ void *ast_dup(const void *src, size_t size) {
     void *ptr = arena_alloc(&ast_arena, size);
     memcpy(ptr, src, size);
     return ptr;
+}
+
+StmtBlock ast_dup_block(StmtBlock block) {
+    return (StmtBlock){ast_dup(block.stmts, block.num_stmts * sizeof(*block.stmts)), block.num_stmts};
 }
 
 TypeSpec *typespec_new(TypeSpecKind kind) {
@@ -52,7 +58,7 @@ TypeSpec *typespec_array(TypeSpec *elem, Expr *size) {
 
 TypeSpec *typespec_func(TypeSpec **args, size_t num_args, TypeSpec *ret) {
     TypeSpec *t = typespec_new(TYPESPEC_FUNC);
-    t->func.args = args;
+    t->func.args = AST_DUP(args);
     t->func.num_args = num_args;
     t->func.ret = ret;
     return t;
@@ -67,7 +73,7 @@ Decl *decl_new(DeclKind kind, const char *name) {
 
 Decl *decl_enum(const char *name, EnumItem *items, size_t num_items) {
     Decl *d = decl_new(DECL_ENUM, name);
-    d->enum_decl.items = items;
+    d->enum_decl.items = AST_DUP(items);
     d->enum_decl.num_items = num_items;
     return d;
 }
@@ -75,14 +81,14 @@ Decl *decl_enum(const char *name, EnumItem *items, size_t num_items) {
 Decl *decl_aggregte(DeclKind kind, const char *name, AggregateItem *items, size_t num_items) {
     assert(kind == DECL_STRUCT || kind == DECL_UNION);
     Decl *d = decl_new(kind, name);
-    d->aggregate.items = items;
+    d->aggregate.items = AST_DUP(items);
     d->aggregate.num_items = num_items;
     return d;
 }
 
 Decl *decl_union(const char *name, AggregateItem *items, size_t num_items) {
     Decl *d = decl_new(DECL_UNION, name);
-    d->aggregate.items = items;
+    d->aggregate.items = AST_DUP(items);
     d->aggregate.num_items = num_items;
     return d;
 }
@@ -96,10 +102,10 @@ Decl *decl_var(const char *name, TypeSpec *type, Expr *expr) {
 
 Decl *decl_func(const char *name, FuncParam *params, size_t num_params, TypeSpec *ret_type, StmtBlock block) {
     Decl *d = decl_new(DECL_FUNC, name);
-    d->func.params = params;
+    d->func.params = AST_DUP(params);
     d->func.num_params = num_params;
     d->func.ret_type = ret_type;
-    d->func.block = block;
+    d->func.block = ast_dup_block(block);
     return d;
 }
 
@@ -122,7 +128,7 @@ Expr *expr_new(ExprKind kind) {
     return e;
 }
 
-Expr *expr_int(uint64_t int_val) {
+Expr *expr_int(int64_t int_val) {
     Expr *e = expr_new(EXPR_INT);
     e->int_val = int_val;
     return e;
@@ -149,7 +155,7 @@ Expr *expr_name(const char *name) {
 Expr *expr_call(Expr *expr, Expr **args, size_t num_args) {
     Expr *e = expr_new(EXPR_CALL);
     e->call.expr = expr;
-    e->call.args = args;
+    e->call.args = AST_DUP(args);
     e->call.num_args = num_args;
     return e;
 }
@@ -178,7 +184,7 @@ Expr *expr_cast(TypeSpec *cast_type, Expr *cast) {
 Expr *expr_compound(TypeSpec *type, Expr **args, size_t num_args) {
     Expr *e = expr_new(EXPR_COMPOUND);
     e->compound.type = type;
-    e->compound.args = args;
+    e->compound.args = AST_DUP(args);
     e->compound.num_args = num_args;
     return e;
 }
@@ -254,24 +260,24 @@ Stmt *stmt_block(StmtBlock block) {
 Stmt *stmt_if(Expr *cond, StmtBlock then_block, ElseIf *elseifs, size_t num_elseifs, StmtBlock else_block) {
     Stmt *s = stmt_new(STMT_IF);
     s->if_stmt.cond = cond;
-    s->if_stmt.then_block = then_block;
-    s->if_stmt.elseifs = elseifs;
+    s->if_stmt.then_block = ast_dup_block(then_block);
+    s->if_stmt.elseifs = AST_DUP(elseifs);
     s->if_stmt.num_elseifs = num_elseifs;
-    s->if_stmt.else_block = else_block;
+    s->if_stmt.else_block = ast_dup_block(else_block);
     return s;
 }
 
 Stmt *stmt_while(Expr *cond, StmtBlock block) {
     Stmt *s = stmt_new(STMT_WHILE);
     s->while_stmt.cond = cond;
-    s->while_stmt.block = block;
+    s->while_stmt.block = ast_dup_block(block);
     return s;
 }
 
 Stmt *stmt_do_while(Expr *cond, StmtBlock block) {
     Stmt *s = stmt_new(STMT_DO_WHILE);
     s->while_stmt.cond = cond;
-    s->while_stmt.block = block;
+    s->while_stmt.block = ast_dup_block(block);
     return s;
 }
 
@@ -280,14 +286,14 @@ Stmt *stmt_for(Stmt* init, Expr *cond, Stmt* next, StmtBlock block) {
     s->for_stmt.init = init;
     s->for_stmt.cond = cond;
     s->for_stmt.next = next;
-    s->for_stmt.block = block;
+    s->for_stmt.block = ast_dup_block(block);
     return s;
 }
 
 Stmt *stmt_switch(Expr *expr, SwitchCase *cases, size_t num_cases) {
     Stmt *s = stmt_new(STMT_SWITCH);
     s->switch_stmt.expr = expr;
-    s->switch_stmt.cases = cases;
+    s->switch_stmt.cases = AST_DUP(cases);
     s->switch_stmt.num_cases = num_cases;
     return s;
 }
@@ -312,3 +318,5 @@ Stmt *stmt_expr(Expr *expr) {
     s->expr = expr;
     return s;
 }
+
+#undef AST_DUP

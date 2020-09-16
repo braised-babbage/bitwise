@@ -23,7 +23,7 @@ TypeSpec *parse_type_func() {
     if (match_token(TOKEN_COLON)) {
         ret = parse_type();
     }
-    return typespec_func(ast_dup(args, buf_sizeof(args)), buf_len(args), ret);
+    return typespec_func(args, buf_len(args), ret);
 }
 
 TypeSpec *parse_type_base() {
@@ -72,12 +72,12 @@ Expr *parse_expr_compound(TypeSpec *type) {
         }
     }
     expect_token(TOKEN_RBRACE);
-    return expr_compound(type, ast_dup(args, buf_sizeof(args)), buf_len(args));
+    return expr_compound(type, args, buf_len(args));
 }
 
 Expr *parse_expr_operand() {
     if (is_token(TOKEN_INT)) {
-        uint64_t val = token.int_val;
+        int64_t val = token.int_val;
         next_token();
         return expr_int(val);
     } else if (is_token(TOKEN_FLOAT)) {
@@ -137,7 +137,7 @@ Expr *parse_expr_base() {
                 }
             }
             expect_token(TOKEN_RPAREN);
-            expr = expr_call(expr, ast_dup(args, buf_sizeof(args)), buf_len(args));
+            expr = expr_call(expr, args, buf_len(args));
         } else if (match_token(TOKEN_LBRACKET)) {
             Expr *index = parse_expr();
             expect_token(TOKEN_RBRACKET);
@@ -254,7 +254,7 @@ StmtBlock parse_stmt_block() {
         buf_push(stmts, parse_stmt());
     }
     expect_token(TOKEN_RBRACE);
-    return (StmtBlock){ast_dup(stmts, buf_sizeof(stmts)), buf_len(stmts)};
+    return (StmtBlock){stmts, buf_len(stmts)};
 }
 
 Stmt *parse_stmt_if() {
@@ -271,7 +271,7 @@ Stmt *parse_stmt_if() {
         StmtBlock elseif_block = parse_stmt_block();
         buf_push(elseifs, (ElseIf){elseif_cond, elseif_block});
     }
-    return stmt_if(cond, then_block, ast_dup(elseifs, buf_sizeof(elseifs)), buf_len(elseifs), else_block);
+    return stmt_if(cond, then_block, elseifs, buf_len(elseifs), else_block);
 }
 
 Stmt *parse_stmt_while() {
@@ -300,6 +300,7 @@ Stmt *parse_simple_stmt() {
     if (match_token(TOKEN_COLON_ASSIGN)) {
         if (expr->kind != EXPR_NAME) {
             fatal_syntax_error(":= must be preceded by a name");
+            return NULL;
         }
         stmt = stmt_init(expr->name, parse_expr());
     } else if (is_assign_op()) {
@@ -342,15 +343,22 @@ SwitchCase parse_stmt_switch_case() {
     while (is_keyword(case_keyword) || is_keyword(default_keyword)) {
         if (match_keyword(case_keyword)) {
             buf_push(exprs, parse_expr());
-            expect_token(TOKEN_COLON);
         } else {
             assert(is_keyword(default_keyword));
             next_token();
+            if (is_default) {
+                syntax_error("Duplicate default labels in same switch clause");
+            }
             is_default = true;
         }
+        expect_token(TOKEN_COLON);
     }
-    StmtBlock block = parse_stmt_block();
-    return (SwitchCase){ast_dup(exprs, buf_sizeof(exprs)), buf_len(exprs), block, is_default};
+    Stmt **stmts = NULL;
+    while (!is_token_eof() && !is_token(TOKEN_RBRACE) && !is_keyword(case_keyword) && !is_keyword(default_keyword)) {
+        buf_push(stmts, parse_stmt());
+    }
+    StmtBlock block = {stmts, buf_len(stmts)};
+    return (SwitchCase){exprs, buf_len(exprs), block, is_default};
 }
 
 Stmt *parse_stmt_switch() {
@@ -361,22 +369,27 @@ Stmt *parse_stmt_switch() {
         buf_push(cases, parse_stmt_switch_case());
     }
     expect_token(TOKEN_RBRACE);
-    return stmt_switch(expr, ast_dup(cases, buf_sizeof(cases)), buf_len(cases));
+    return stmt_switch(expr, cases, buf_len(cases));
 }
 
 Stmt *parse_stmt() {
     if (is_token(TOKEN_LBRACE)) {
         return stmt_block(parse_stmt_block());
-    } else if (match_keyword(return_keyword)) {
-        Stmt *stmt = stmt_return(parse_expr());
-        expect_token(TOKEN_SEMICOLON);
-        return stmt;
     } else if (match_keyword(break_keyword)) {
         expect_token(TOKEN_SEMICOLON);
         return stmt_break();
     } else if (match_keyword(continue_keyword)) {
         expect_token(TOKEN_SEMICOLON);
         return stmt_continue();
+    } else if (match_keyword(return_keyword)) {
+        Stmt *stmt = NULL;
+        if (!is_token(TOKEN_SEMICOLON)) {
+            stmt = stmt_return(parse_expr());
+        } else {
+            stmt = stmt_return(NULL);
+        }
+        expect_token(TOKEN_SEMICOLON);
+        return stmt;
     } else if (match_keyword(if_keyword)) {
         return parse_stmt_if();
     } else if (match_keyword(while_keyword)) {
@@ -425,7 +438,7 @@ Decl *parse_decl_enum() {
         }
     }
     expect_token(TOKEN_RBRACE);
-    return decl_enum(name, ast_dup(items, buf_sizeof(items)), buf_len(items));
+    return decl_enum(name, items, buf_len(items));
 }
 
 AggregateItem parse_decl_aggregate_item() {
@@ -437,7 +450,7 @@ AggregateItem parse_decl_aggregate_item() {
     expect_token(TOKEN_COLON);
     TypeSpec *type = parse_type();
     expect_token(TOKEN_SEMICOLON);
-    return (AggregateItem){ast_dup(names, buf_sizeof(names)), buf_len(names), type};
+    return (AggregateItem){names, buf_len(names), type};
 }
 
 Decl *parse_decl_aggregate(DeclKind kind) {
@@ -449,7 +462,7 @@ Decl *parse_decl_aggregate(DeclKind kind) {
         buf_push(items, parse_decl_aggregate_item());
     }
     expect_token(TOKEN_RBRACE);
-    return decl_aggregte(kind, name, ast_dup(items, buf_sizeof(items)), buf_len(items));
+    return decl_aggregte(kind, name, items, buf_len(items));
 }
 
 Decl *parse_decl_var() {
@@ -504,7 +517,7 @@ Decl *parse_decl_func() {
         ret_type = parse_type();
     }
     StmtBlock block = parse_stmt_block();
-    return decl_func(name, ast_dup(params, buf_sizeof(params)), buf_len(params), ret_type, block);
+    return decl_func(name, params, buf_len(params), ret_type, block);
 }
 
 Decl *parse_decl_optional() {
@@ -555,6 +568,6 @@ void parse_test() {
     parse_and_print_decl("const n = sizeof(42)");
     parse_and_print_decl("func f() { do { print(42); } while(1); }");
     parse_and_print_decl("typedef T = (func(int):int)[16]");
-    parse_and_print_decl("func f() { enum E { A, B, C } return 42; }");
+    parse_and_print_decl("func f() { enum E { A, B, C } return; }");
     parse_and_print_decl("func f() { if (1) { return 1; } else if (2) { return 2; } else { return 3; } }");
 }
