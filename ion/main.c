@@ -2,6 +2,7 @@
 #include "lex.h"
 #include "print.h"
 #include "parse.h"
+#include "resolve.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -40,7 +41,8 @@ void run_tests() {
     str_intern_test();
     lex_test();
     print_test();
-    // parse_test();
+    parse_test();
+    resolve_test();
     printf("\nall passed\n");
 }
 
