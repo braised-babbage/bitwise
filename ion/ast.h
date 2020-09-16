@@ -13,10 +13,10 @@ typedef struct TypeSpec TypeSpec;
 void *ast_alloc(size_t size);
 void *ast_dup(const void *src, size_t size);
 
-typedef struct StmtBlock {
+typedef struct StmtList {
     Stmt **stmts;
     size_t num_stmts;
-} StmtBlock;
+} StmtList;
 
 typedef enum TypeSpecKind {
     TYPESPEC_NONE,
@@ -79,7 +79,7 @@ typedef struct FuncDecl {
     FuncParam *params;
     size_t num_params;
     TypeSpec *ret_type;
-    StmtBlock block;
+    StmtList block;
 } FuncDecl;
 
 typedef struct EnumItem {
@@ -133,7 +133,7 @@ Decl *decl_new(DeclKind kind, const char *name);
 Decl *decl_enum(const char *name, EnumItem *items, size_t num_items);
 Decl *decl_aggregte(DeclKind kind, const char *name, AggregateItem *items, size_t num_items);
 Decl *decl_var(const char *name, TypeSpec *type, Expr *expr);
-Decl *decl_func(const char *name, FuncParam *params, size_t num_params, TypeSpec *ret_type, StmtBlock block);
+Decl *decl_func(const char *name, FuncParam *params, size_t num_params, TypeSpec *ret_type, StmtList block);
 Decl *decl_const(const char *name, Expr *expr);
 Decl *decl_typedef(const char *name, TypeSpec *type);
 
@@ -203,7 +203,7 @@ struct Expr {
     ExprKind kind;
     union {
         // literal/names
-        uint64_t int_val;
+        int64_t int_val;
         double float_val;
         const char *str_val;
         const char *name;
@@ -258,33 +258,33 @@ typedef enum StmtKind {
 
 typedef struct ElseIf {
     Expr *cond;
-    StmtBlock block;
+    StmtList block;
 } ElseIf;
 
 typedef struct IfStmt {
     Expr *cond;
-    StmtBlock then_block;
+    StmtList then_block;
     ElseIf *elseifs;
     size_t num_elseifs;
-    StmtBlock else_block;
+    StmtList else_block;
 } IfStmt;
 
 typedef struct WhileStmt {
     Expr *cond;
-    StmtBlock block;
+    StmtList block;
 } WhileStmt;
 
 typedef struct ForStmt {
     Stmt* init;
     Expr *cond;
     Stmt* next;
-    StmtBlock block;
+    StmtList block;
 } ForStmt;
 
 typedef struct SwitchCase {
     Expr **exprs;
     size_t num_exprs;
-    StmtBlock block;
+    StmtList block;
     bool is_default;
 } SwitchCase;
 
@@ -314,7 +314,7 @@ struct Stmt {
     union {
         Decl *decl;
         ReturnStmt return_stmt;
-        StmtBlock block;
+        StmtList block;
         IfStmt if_stmt;
         WhileStmt while_stmt;
         ForStmt for_stmt;
@@ -325,16 +325,18 @@ struct Stmt {
     };
 };
 
+StmtList stmt_list(Stmt **stmts, size_t num_stmts);
+
 Stmt *stmt_new(StmtKind kind);
 Stmt *stmt_decl(Decl *decl);
 Stmt *stmt_return(Expr *expr);
 Stmt *stmt_break();
 Stmt *stmt_continue();
-Stmt *stmt_block(StmtBlock block);
-Stmt *stmt_if(Expr *cond, StmtBlock then_block, ElseIf *elseifs, size_t num_elseifs, StmtBlock else_block);
-Stmt *stmt_while(Expr *cond, StmtBlock block);
-Stmt *stmt_do_while(Expr *cond, StmtBlock block);
-Stmt *stmt_for(Stmt* init, Expr *cond, Stmt* next, StmtBlock block);
+Stmt *stmt_block(StmtList block);
+Stmt *stmt_if(Expr *cond, StmtList then_block, ElseIf *elseifs, size_t num_elseifs, StmtList else_block);
+Stmt *stmt_while(Expr *cond, StmtList block);
+Stmt *stmt_do_while(Expr *cond, StmtList block);
+Stmt *stmt_for(Stmt* init, Expr *cond, Stmt* next, StmtList block);
 Stmt *stmt_switch(Expr *expr, SwitchCase *cases, size_t num_cases);
 Stmt *stmt_assign(TokenKind op, Expr *left, Expr *right);
 Stmt *stmt_init(const char *name, Expr *expr);

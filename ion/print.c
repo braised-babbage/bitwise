@@ -250,7 +250,7 @@ void print_expr(Expr *expr) {
     }
 }
 
-void print_stmt_block(StmtBlock block) {
+void print_stmt_block(StmtList block) {
     printf("(block");
     indent++;
     for (Stmt **it = block.stmts; it != block.stmts + block.num_stmts; it++) {
@@ -417,7 +417,7 @@ void stmt_test() {
     print_stmt_line(stmt_continue());
     print_stmt_line(
         stmt_block(
-            (StmtBlock){
+            (StmtList){
                 (Stmt*[]){
                     stmt_break(),
                     stmt_continue()
@@ -431,7 +431,7 @@ void stmt_test() {
     print_stmt_line(
         stmt_if(
             expr_name("flag1"),
-            (StmtBlock){
+            (StmtList){
                 (Stmt*[]){
                     stmt_return(expr_int(1))
                 },
@@ -439,7 +439,7 @@ void stmt_test() {
             },
             (ElseIf[]){
                 expr_name("flag2"),
-                (StmtBlock){
+                (StmtList){
                     (Stmt*[]){
                         stmt_return(expr_int(2))
                     },
@@ -447,7 +447,7 @@ void stmt_test() {
                 }
             },
             1,
-            (StmtBlock){
+            (StmtList){
                 (Stmt*[]){
                     stmt_return(expr_int(3))
                 },
@@ -458,7 +458,7 @@ void stmt_test() {
     print_stmt_line(
         stmt_while(
             expr_name("running"),
-            (StmtBlock){
+            (StmtList){
                 (Stmt*[]){
                     stmt_assign(TOKEN_ADD_ASSIGN, expr_name("i"), expr_int(16)),
                 },
