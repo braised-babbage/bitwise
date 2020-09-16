@@ -269,9 +269,9 @@ void print_stmt(Stmt *stmt) {
         break;
     case STMT_RETURN:
         printf("(return");
-        if (s->return_stmt.expr) {
+        if (s->expr) {
             printf(" ");
-            print_expr(s->return_stmt.expr);
+            print_expr(s->expr);
         }
         printf(")");
         break;
